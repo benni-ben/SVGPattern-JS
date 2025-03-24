@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SVGPattern</title>
+        <style>body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: hsl(0, 0%, 81%); } .container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); } .controls { background-color: #f8f9fa; padding: 15px; border-radius: 6px; } .preview { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background-color: white; min-height: 400px; } .control-group { margin-bottom: 15px; } label { display: block; margin-bottom: 5px; font-weight: bold; } .checkbox-label { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-weight: normal; } input[type="number"], input[type="color"], select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type="checkbox"] { margin: 0; } input[type="color"] { height: 40px; } button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; margin-bottom: 10px; } button:hover { background-color: #0056b3; } #svgContainer { width: 100%; height: 100%; min-height: 400px; } .export-options { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; }</style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="patternType">Pattern Preset:</label>
+                    <select id="patternType" onchange="generatePattern()">
+                        <option value="circles">Circles</option>
+                        <option value="squares">Squares</option>
+                        <option value="hexagons">Hexagons</option>
+                        <option value="triangles">Triangles</option>
+                        <option value="lines">Lines</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="primaryColor">Primary Color:</label>
+                    <input type="color" id="primaryColor" value="#007bff" onchange="generatePattern()">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="randomizeColors" onchange="generatePattern()">
+                        🎲
+                    </label>
+                    <label for="backgroundColor">Background Color:</label>
+                    <input type="color" id="backgroundColor" value="#ffffff" onchange="generatePattern()">2
+                </div>
+                <div class="control-group">
+                    <label for="size">Size:</label>
+                    <input type="number" id="size" value="20" min="1" max="150" step="0.5" oninput="generatePattern()" style="font-size: 15px; font-weight: lighter; text-align: left;">
+                    <label for="spacing">Spacing:</label>
+                    <input type="number" id="spacing" value="15" min="0" max="250" step="0.5" oninput="generatePattern()" style="font-size: 15px; font-weight: lighter; text-align: left;">
+                    <label for="opacity">Opacity:</label>
+                    <input type="number" id="opacity" value="1" min="0" max="1" step="0.05" oninput="generatePattern()" style="font-size: 15px; font-weight: lighter; text-align: left;">
+                </div>
+                <div class="control-group">
+                    <label for="rotation">Rotation:</label>
+                    <input type="number" id="rotation" value="0" min="-360" max="360" oninput="generatePattern()" style="font-size: 15px; font-weight: lighter; text-align: left;">
+                </div>
+                <div class="export-options">
+                    <button onclick="exportSVG()" style="font-weight: 100; cursor: pointer;">Export SVG</button>
+                    <button onclick="copyToClipboard()" style="font-weight: 100; cursor: pointer;">Copy SVG Code</button>
+                </div>
+            </div>
+            <div class="preview">
+                <div id="svgContainer"></div>
+            </div>
+        </div>
+        <script>
+        let currentPattern = null;
+        function getRandomColor() {
+            return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+        }
+        //generatepattern variable
+        function generatePattern() {
+            const container = document.getElementById('svgContainer');
+            const type = document.getElementById('patternType').value;
+            const primaryColor = document.getElementById('primaryColor').value;
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const size = parseInt(document.getElementById('size').value);
+            const spacing = parseInt(document.getElementById('spacing').value);
+            const opacity = parseFloat(document.getElementById('opacity').value);
+            const rotation = parseInt(document.getElementById('rotation').value);
+            const randomizeColors = document.getElementById('randomizeColors').checked;
+            const width = 200;
+            const height = 200;
+            //generate SVG with proper attributes
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+            svg.style.backgroundColor = backgroundColor;
+
+            //pattern defs
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+            pattern.setAttribute('id', 'mainPattern');
+            pattern.setAttribute('patternUnits', 'userSpaceOnUse');
+            pattern.setAttribute('width', width);
+            pattern.setAttribute('height', height);
+
+            //generate based on type
+            switch(type) {
+                case 'circles':
+                    for(let x = 0; x < width; x += size + spacing) {
+                        for(let y = 0; y < height; y += size + spacing) {
+                            const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            circle.setAttribute('cx', x + size/2);
+                            circle.setAttribute('cy', y + size/2);
+                            circle.setAttribute('r', size/2);
+                            circle.setAttribute('fill', randomizeColors ? getRandomColor() : primaryColor);
+                            circle.setAttribute('opacity', opacity);
+                            pattern.appendChild(circle);
+                        }
+                    }
+                    break;
+                case 'squares':
+                    for(let x = 0; x < width; x += size + spacing) {
+                        for(let y = 0; y < height; y += size + spacing) {
+                            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                            rect.setAttribute('x', x);
+                            rect.setAttribute('y', y);
+                            rect.setAttribute('width', size);
+                            rect.setAttribute('height', size);
+                            rect.setAttribute('fill', randomizeColors ? getRandomColor() : primaryColor);
+                            rect.setAttribute('opacity', opacity);
+                            pattern.appendChild(rect);
+                        }
+                    }
+                    break;
+                case 'hexagons':
+                    const hexRadius = size / 2;
+                    for(let row = 0; row < height / (hexRadius * 1.5 + spacing); row++) {
+                        for(let col = 0; col < width / (hexRadius * 2 + spacing); col++) {
+                            const centerX = col * (hexRadius * 2 + spacing) + (row % 2) * (hexRadius + spacing/2);
+                            const centerY = row * (hexRadius * 1.5 + spacing);
+                            const points = [];
+                            for(let i = 0; i < 6; i++) {
+                                const angle = (60 * i + 30) * Math.PI / 180;
+                                points.push(`${centerX + hexRadius * Math.cos(angle)},${centerY + hexRadius * Math.sin(angle)}`);
+                            }
+                            const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                            polygon.setAttribute('points', points.join(' '));
+                            polygon.setAttribute('fill', randomizeColors ? getRandomColor() : primaryColor);
+                            polygon.setAttribute('opacity', opacity);
+                            pattern.appendChild(polygon);
+                        }
+                    }
+                    break;
+                case 'triangles':
+                    for(let x = 0; x < width; x += size + spacing) {
+                        for(let y = 0; y < height; y += size + spacing) {
+                            const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                            const points = [
+                                `${x},${y + size}`,
+                                `${x + size/2},${y}`,
+                                `${x + size},${y + size}`
+                            ];
+                            triangle.setAttribute('points', points.join(' '));
+                            triangle.setAttribute('fill', randomizeColors ? getRandomColor() : primaryColor);
+                            triangle.setAttribute('opacity', opacity);
+                            pattern.appendChild(triangle);
+                        }
+                    }
+                    break;
+                case 'lines':
+                    for(let y = 0; y < height; y += size + spacing) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', '0');
+                        line.setAttribute('y1', y);
+                        line.setAttribute('x2', width);
+                        line.setAttribute('y2', y);
+                        line.setAttribute('stroke', randomizeColors ? getRandomColor() : primaryColor);
+                        line.setAttribute('stroke-width', size);
+                        line.setAttribute('opacity', opacity);
+                        pattern.appendChild(line);
+                    }
+                    break;
+            }
+            //rotation
+            if (rotation !== 0) {
+                pattern.setAttribute('patternTransform', `rotate(${rotation}, ${width/2}, ${height/2})`);
+            }
+            defs.appendChild(pattern);
+            svg.appendChild(defs);
+            const background = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            background.setAttribute('width', '100%');
+            background.setAttribute('height', '100%');
+            background.setAttribute('fill', 'url(#mainPattern)');
+            svg.appendChild(background);
+            //clear container
+            container.innerHTML = '';
+            container.appendChild(svg);
+            currentPattern = svg;
+        }
+        function exportSVG() {
+            if (!currentPattern) {
+                alert('No pattern is generated! Please generate a pattern before exporting.');
+                return;
+            }
+
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(currentPattern);
+            const blob = new Blob([svgString], {type: 'image/svg+xml'});
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'pattern.svg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            if (!currentPattern) {
+                alert('No pattern is generated! Please generate a pattern before copying.');
+                return;
+            }
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(currentPattern);
+            
+            navigator.clipboard.writeText(svgString).then(() => {
+                alert('Code was copied to clipboard.');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
+        //generate default pattern onload
+        window.onload = generatePattern;
+    </script>
+    </body>
+</html>
