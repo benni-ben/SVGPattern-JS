@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>SVGPattern</title>
-        <style>body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: hsl(0, 0%, 81%); } .container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); } .controls { background-color: #f8f9fa; padding: 15px; border-radius: 6px; } .preview { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background-color: white; min-height: 400px; } .control-group { margin-bottom: 15px; } label { display: block; margin-bottom: 5px; font-weight: bold; } .checkbox-label { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-weight: normal; } input[type="number"], input[type="color"], select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; } input[type="checkbox"] { margin: 0; } input[type="color"] { height: 40px; } button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; margin-bottom: 10px; } button:hover { background-color: #0056b3; } #svgContainer { width: 100%; height: 100%; min-height: 400px; } .export-options { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; }</style>
+        <style>body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background-color: hsla(0, 0%, 95%, 0.65); } .container { display: grid; grid-template-columns: 300px 1fr; gap: 20px; background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 5px 4px rgba(18, 18, 18, 0.425); } .controls { background-color: #eff0f1; padding: 15px; border-radius: 6px; } .preview { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; background-color: white; min-height: 400px; } .control-group { margin-bottom: 15px; } label { display: block; margin-bottom: 5px; font-weight: bold; } .checkbox-label { display: flex; align-items: center; gap: 8px; margin: 10px 0; font-weight: normal; } input[type="number"], input[type="color"], select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #aaaaaa; border-radius: 8px; } input[type="checkbox"] { margin: 0; } input[type="color"] { height: 40px; } button { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; width: 100%; margin-bottom: 10px; } button:hover { background-color: #0f59a9; } #svgContainer { width: 100%; height: 100%; min-height: 400px; } .export-options { margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd; }</style>
     </head>
     <body>
         <div class="container">
@@ -23,11 +23,10 @@
                     <label for="primaryColor">Primary Color:</label>
                     <input type="color" id="primaryColor" value="#007bff" onchange="generatePattern()">
                     <label class="checkbox-label">
-                        <input type="checkbox" id="randomizeColors" onchange="generatePattern()">
-                        🎲
+                        <input type="checkbox" id="randomizeColors" onchange="generatePattern()">🎲
                     </label>
                     <label for="backgroundColor">Background Color:</label>
-                    <input type="color" id="backgroundColor" value="#ffffff" onchange="generatePattern()">2
+                    <input type="color" id="backgroundColor" value="#ffffff" onchange="generatePattern()">
                 </div>
                 <div class="control-group">
                     <label for="size">Size:</label>
@@ -51,6 +50,7 @@
             </div>
         </div>
         <script>
+        //magic random color generator :O
         let currentPattern = null;
         function getRandomColor() {
             return '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
@@ -74,7 +74,6 @@
             svg.setAttribute('height', '100%');
             svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
             svg.style.backgroundColor = backgroundColor;
-
             //pattern defs
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
             const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
@@ -82,7 +81,6 @@
             pattern.setAttribute('patternUnits', 'userSpaceOnUse');
             pattern.setAttribute('width', width);
             pattern.setAttribute('height', height);
-
             //generate based on type
             switch(type) {
                 case 'circles':
@@ -182,12 +180,11 @@
                 alert('No pattern is generated! Please generate a pattern before exporting.');
                 return;
             }
-
+            //create download blob to export to device
             const serializer = new XMLSerializer();
             const svgString = serializer.serializeToString(currentPattern);
             const blob = new Blob([svgString], {type: 'image/svg+xml'});
             const url = URL.createObjectURL(blob);
-            
             const link = document.createElement('a');
             link.href = url;
             link.download = 'pattern.svg';
@@ -196,7 +193,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
-
+        //copy this shi to the clipboard
         function copyToClipboard() {
             if (!currentPattern) {
                 alert('No pattern is generated! Please generate a pattern before copying.');
